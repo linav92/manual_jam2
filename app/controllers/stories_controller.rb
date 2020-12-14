@@ -5,7 +5,7 @@ class StoriesController < ApplicationController
   # GET /stories
   # GET /stories.json
   def index
-    @stories = Story.all
+    @stories = current_user.stories
   end
 
   # GET /stories/1
@@ -27,6 +27,7 @@ class StoriesController < ApplicationController
   # POST /stories.json
   def create
     @story = Story.new(story_params.merge(user: current_user))
+    @story.user = current_user
     respond_to do |format|
       if @story.save
         format.html { redirect_to @story, notice: 'Story was successfully created.' }
@@ -55,11 +56,16 @@ class StoriesController < ApplicationController
   # DELETE /stories/1
   # DELETE /stories/1.json
   def destroy
-    @story.destroy
-    respond_to do |format|
-      format.html { redirect_to stories_url, notice: 'Story was successfully destroyed.' }
-      format.json { head :no_content }
+    if current_user.admin?
+      @story.destroy
+        respond_to do |format|
+        format.html { redirect_to stories_url, notice: 'Story was successfully destroyed.' }
+        format.json { head :no_content }
+      end
+    else
+      redirect_to stories_path, notice: "You aren't allow to delete stories"
     end
+    
   end
 
   private
